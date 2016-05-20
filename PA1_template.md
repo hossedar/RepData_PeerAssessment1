@@ -18,8 +18,8 @@ activity$date <- as.Date(activity$date)
 
 ```r
 library(dplyr)
-activityDaily <- group_by(activity, date) %>% summarize(dailySteps = sum(steps, na.rm = TRUE))
-hist(activityDaily$dailySteps, main="Total Number of Steps Taken Per Day", xlab = "Total Steps", breaks = 20, xlim = c(0,25000), ylim = c(0,15))
+activityDaily <- group_by(activity[complete.cases(activity),], date) %>% summarize(dailySteps = sum(steps))
+hist(activityDaily$dailySteps, main="Total Number of Steps Taken Per Day", xlab = "Total Steps", breaks = 10, xlim = c(0,25000), ylim = c(0,20))
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
@@ -27,20 +27,20 @@ hist(activityDaily$dailySteps, main="Total Number of Steps Taken Per Day", xlab 
 2. The mean total number of steps taken per day is:
 
 ```r
-round( mean(activityDaily$dailySteps, na.rm = TRUE) )
+round( mean(activityDaily$dailySteps) )
 ```
 
 ```
-## [1] 9354
+## [1] 10766
 ```
 The median total number of steps taken per day is:
 
 ```r
-round( median(activityDaily$dailySteps, na.rm = TRUE) )
+round( median(activityDaily$dailySteps) )
 ```
 
 ```
-## [1] 10395
+## [1] 10765
 ```
 
 
@@ -92,14 +92,14 @@ sum(!complete.cases(activity))
 imputeVec <- rep(activityInterval$intervalMeanSteps, times = nbDays)
 activityNew <- activity
 activityNew$steps[is.na(activityNew$steps)] <- 0 
-activityNew$steps <- activityNew$steps + is.numeric(is.na(activity$steps) * imputeVec )
+activityNew$steps <- activityNew$steps + ( as.numeric(is.na(activity$steps)) * imputeVec )
 ```
 
 4. Histogram:
 
 ```r
-activityDaily <- group_by(activityNew, date) %>% summarize(dailySteps = sum(steps, na.rm = TRUE))
-hist(activityDaily$dailySteps, main="Total Number of Steps Taken Per Day", xlab = "Total Steps", breaks = 20, xlim = c(0,25000), ylim = c(0,15))
+activityDaily <- group_by(activityNew, date) %>% summarize(dailySteps = sum(steps))
+hist(activityDaily$dailySteps, main="Total Number of Steps Taken Per Day", xlab = "Total Steps", breaks = 10, xlim = c(0,25000), ylim = c(0,25))
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
@@ -107,23 +107,23 @@ hist(activityDaily$dailySteps, main="Total Number of Steps Taken Per Day", xlab 
 The mean total number of steps taken per day is:
 
 ```r
-round( mean(activityDaily$dailySteps, na.rm = TRUE) )
+round( mean(activityDaily$dailySteps) )
 ```
 
 ```
-## [1] 9642
+## [1] 10766
 ```
 The median total number of steps taken per day is:
 
 ```r
-round( median(activityDaily$dailySteps, na.rm = TRUE) )
+round( median(activityDaily$dailySteps) )
 ```
 
 ```
-## [1] 10683
+## [1] 10766
 ```
 
-The impact of imputing missing data is to slightly increase the mean and median estimates.
+Imputing missing data in this way has no impact on the mean (as expected) and increases the median slightly.
 
 
 
@@ -145,8 +145,8 @@ activityNewInterval <- lapply(activityNewInterval, summarize, intervalMeanSteps 
 activityNewInterval <- as.data.frame( do.call('rbind', activityNewInterval) )
 activityNewInterval$weekday <- factor(activityNewInterval$weekday, levels(activityNewInterval$weekday)[c(2,1)])
 
-g <- qplot(interval, intervalMeanSteps, data = activityNewInterval, facets = weekday~., xlab = "5 minute Intervals (axis marks signify hours)", ylab = "Average # of Steps Taken", main = 'Ave Number of Steps Taken at Each Interval by Weekend & Weekday')  
-myplot <- g + geom_line()  + scale_x_continuous(breaks=seq(0, 1440, 60), labels  = seq(0, 24, 1) )
+g <- qplot(interval, intervalMeanSteps, data = activityNewInterval, facets = weekday~., alpha = 0.01, xlab = "5 minute Intervals (axis marks signify hours)", ylab = "Average # of Steps Taken", main = 'Ave Number of Steps Taken at Each Interval by Weekend & Weekday')  
+myplot <- g + geom_line()  + scale_x_continuous(breaks=seq(0, 1440, 60), labels  = seq(0, 24, 1) ) + theme(legend.position = "none")
 
 print(myplot)
 ```

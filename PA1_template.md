@@ -1,15 +1,11 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 
 ## Loading and preprocessing the data
 
-```{r}
+
+```r
 activity <- read.csv("activity.csv")
 nbDays <- length(levels(activity$date))
 activity$date <- as.Date(activity$date)
@@ -19,34 +15,51 @@ activity$date <- as.Date(activity$date)
 
 ## What is mean total number of steps taken per day?
 1. Histogram:
-```{r, message = FALSE}
+
+```r
 library(dplyr)
 activityDaily <- group_by(activity, date) %>% summarize(dailySteps = sum(steps, na.rm = TRUE))
 hist(activityDaily$dailySteps, main="Total Number of Steps Taken Per Day", xlab = "Total Steps", breaks = 20, xlim = c(0,25000), ylim = c(0,15))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
 2. The mean total number of steps taken per day is:
-```{r}
+
+```r
 round( mean(activityDaily$dailySteps, na.rm = TRUE) )
 ```
+
+```
+## [1] 9354
+```
 The median total number of steps taken per day is:
-```{r}
+
+```r
 round( median(activityDaily$dailySteps, na.rm = TRUE) )
+```
+
+```
+## [1] 10395
 ```
 
 
 
 ## What is the average daily activity pattern?
 1. Time Series Plot:
-```{r}
+
+```r
 activityInterval <- group_by(activity, interval) %>% summarize(intervalMeanSteps = mean(steps, na.rm = TRUE))
 activityInterval$interval <- seq(0, 1435, 5)
 plot(activityInterval$interval, activityInterval$intervalMeanSteps, xaxt = "n", type = "l", main = "Average Number of Steps Taken Each Interval", ylab = "Average # Steps Taken", xlab = "5 minute Intervals (axis marks signify hours)") 
 axis( 1, at = seq(0, 1440, 60), labels  = seq(0, 24, 1))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
 2. The maximum average steps by 5-minute interval occurs at:
-```{r}
+
+```r
 activityIntervalMax <- which.max(activityInterval$intervalMeanSteps)
 activityIntervalMax <- activityIntervalMax*5 - 5
 MaxHr <- floor(activityIntervalMax/60)
@@ -54,18 +67,28 @@ MaxMn <- 60 * (activityIntervalMax/60 - MaxHr)
 paste( as.character(MaxHr), "hours and", as.character(MaxMn), "minutes."  )
 ```
 
+```
+## [1] "8 hours and 35 minutes."
+```
+
 
 
 ## Imputing missing values
 1. Total number of missing values in the dataset:
-```{r}
+
+```r
 sum(!complete.cases(activity))
+```
+
+```
+## [1] 2304
 ```
 
 2. Missing steps values at a particular 5-mintue interval are replaced by the mean step value for that interval.
 
 3. Create new dataset with missing values imputed: 
-```{r}
+
+```r
 imputeVec <- rep(activityInterval$intervalMeanSteps, times = nbDays)
 activityNew <- activity
 activityNew$steps[is.na(activityNew$steps)] <- 0 
@@ -73,18 +96,31 @@ activityNew$steps <- activityNew$steps + is.numeric(is.na(activity$steps) * impu
 ```
 
 4. Histogram:
-```{r}
+
+```r
 activityDaily <- group_by(activityNew, date) %>% summarize(dailySteps = sum(steps, na.rm = TRUE))
 hist(activityDaily$dailySteps, main="Total Number of Steps Taken Per Day", xlab = "Total Steps", breaks = 20, xlim = c(0,25000), ylim = c(0,15))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+
 The mean total number of steps taken per day is:
-```{r}
+
+```r
 round( mean(activityDaily$dailySteps, na.rm = TRUE) )
 ```
+
+```
+## [1] 9642
+```
 The median total number of steps taken per day is:
-```{r}
+
+```r
 round( median(activityDaily$dailySteps, na.rm = TRUE) )
+```
+
+```
+## [1] 10683
 ```
 
 The impact of imputing missing data is to slightly increase the mean and median estimates.
@@ -93,12 +129,14 @@ The impact of imputing missing data is to slightly increase the mean and median 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 1. Create new factor variable:
-```{r}
+
+```r
 activityNew$weekday <- factor( weekdays(as.Date(activityNew$date)) %in% c("Saturday", "Sunday"), labels = c("weekday", "weekend"))
 ```
 
 2. Panel plot:
-```{r, message = FALSE}
+
+```r
 library(ggplot2)
 activityNew$interval <- rep( seq(0, 1435, 5), times = nbDays)
 activityNewInterval <- split(activityNew, activityNew$weekday)
@@ -111,5 +149,6 @@ g <- qplot(interval, intervalMeanSteps, data = activityNewInterval, facets = wee
 myplot <- g + geom_line()  + scale_x_continuous(breaks=seq(0, 1440, 60), labels  = seq(0, 24, 1) )
 
 print(myplot)
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
